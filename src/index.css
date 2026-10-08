@@ -1,0 +1,42 @@
+@import 'tailwindcss';
+
+.dungeon-pin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid var(--pin-glow);
+  background: var(--pin-color);
+  box-shadow: 0 0 14px var(--pin-glow);
+}
+.dungeon-pin.radiant {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+.dungeon-pin.dormant {
+  animation: flicker 1.4s steps(2, end) infinite;
+}
+.dungeon-pin.siege {
+  animation: pulse-glow 0.8s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 8px var(--pin-glow);
+  }
+  50% {
+    box-shadow:
+      0 0 22px var(--pin-glow),
+      0 0 34px var(--pin-glow);
+  }
+}
+@keyframes flicker {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+.dark-tiles {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
+}
