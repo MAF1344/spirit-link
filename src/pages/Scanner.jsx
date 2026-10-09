@@ -72,7 +72,8 @@ export default function Scanner({session}) {
       const body = error.context ? await error.context.json().catch(() => null) : null;
       setResult({ok: false, text: body?.error ?? error.message});
     } else {
-      setResult({ok: true, text: `${data.hero_name} berhasil Tap-In (${data.prayer})`});
+      const bonus = data.exp_gained > 0 ? ` +${data.exp_gained} EXP` : ' (batas EXP harian tercapai)';
+      setResult({ok: true, text: `${data.hero_name} berhasil Tap-In (${data.prayer})${bonus}`});
     }
   };
 

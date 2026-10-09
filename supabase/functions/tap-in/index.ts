@@ -2,6 +2,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const TZ = 'Asia/Jakarta' // semua masjid pilot ada di WIB
 const WINDOW_MINUTES = Number(Deno.env.get('TAPIN_WINDOW_MINUTES') ?? '60')
+const MISSIONS_PER_DAY = 3
+const EXP_PER_PRAYER = 50
 
 const PRAYER_KEYS: Record<string, string> = {
   fajr: 'Fajr',
@@ -100,7 +102,7 @@ Deno.serve(async (req) => {
     return json({ error: `Waktu Tap-In ${prayer} sudah lewat (berakhir ${fmtTime(end)} WIB)` }, 422)
   }
 
-  // 7. Catat. Constraint unique mencegah Tap-In ganda untuk sholat yang sama.
+    // 7. Catat. Constraint unique mencegah Tap-In ganda untuk sholat yang sama.
   const { error: insertError } = await admin.from('tap_ins').insert({
     player_id: player.id,
     dungeon_id: link.dungeon_id,
@@ -114,11 +116,35 @@ Deno.serve(async (req) => {
     return json({ error: 'Gagal menyimpan Tap-In' }, 500)
   }
 
+  // 8. Beri EXP kalau masih dalam batas misi harian
+  const { count } = await admin
+    .from('tap_ins')
+    .select('id', { count: 'exact', head: true })
+    .eq('player_id', player.id)
+    .eq('prayer_date', isoDate)
+
+  let expGained = 0
+  let totalExp: number | null = null
+  let level: number | null = null
+  if ((count ?? 0) <= MISSIONS_PER_DAY) {
+    const { data: awarded } = await admin.rpc('award_exp', {
+      p_player: player.id,
+      p_amount: EXP_PER_PRAYER,
+    })
+    if (awarded?.[0]) {
+      expGained = EXP_PER_PRAYER
+      totalExp = awarded[0].new_exp
+      level = awarded[0].new_level
+    }
+  }
+
   return json({
-    ok: true,
+    ok: true, 
     hero_name: player.hero_name,
     dungeon: dungeon.name,
     prayer,
     window: `${fmtTime(start)}-${fmtTime(end)} WIB`,
-  })
+    exp_gained: expGained,
+    total_exp: totalExp,
+    level,})
 })
