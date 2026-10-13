@@ -37,6 +37,17 @@
     opacity: 0.45;
   }
 }
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
 .dark-tiles {
   filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
+}
+.animate-shimmer {
+  animation: shimmer 2s infinite;
 }
